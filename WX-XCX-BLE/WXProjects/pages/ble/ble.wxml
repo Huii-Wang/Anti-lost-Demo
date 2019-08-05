@@ -10,10 +10,10 @@ module.exports.len = function(arr) {
 <button bindtap="openBluetoothAdapter">开始扫描并连接到设备</button>
 <!-- <button bindtap="stopBluetoothDevicesDiscovery">停止扫描</button>
 <button bindtap="closeBluetoothAdapter">结束流程</button> -->
-<button bindtap="stopBluetoothDevicesDiscovery">发送防丢器响铃命令</button>
-<button bindtap="closeBluetoothAdapter">发送防丢器停止响铃命令</button>
+<button bindtap="writeBLECharacteristicValue01">连接成功后:发防丢器响铃命令</button>
+<button bindtap="writeBLECharacteristicValue00">连接成功后:发防丢器停止响铃命令</button>
 
-<view class="devices_summary">已发现 {{devices.length}} 个外围设备：</view>
+<!-- <view class="devices_summary">已发现 {{devices.length}} 个外围设备：</view>
 <scroll-view class="device_list" scroll-y scroll-with-animation>
   <view wx:for="{{devices}}" wx:key="index"
    data-device-id="{{item.deviceId}}"
@@ -26,7 +26,7 @@ module.exports.len = function(arr) {
     <view style="font-size: 10px">UUID: {{item.deviceId}}</view>
     <view style="font-size: 10px">Service数量: {{utils.len(item.advertisServiceUUIDs)}}</view>
   </view>
-</scroll-view>
+</scroll-view> -->
 
 <view class="connected_info" wx:if="{{connected}}">
   <view>
