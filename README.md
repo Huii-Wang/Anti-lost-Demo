@@ -6,7 +6,7 @@
     后续会支持更多版本Demo,如有需要，请联系我们进行开发
 
 ## 01.小程序 防丢器 Demo
-[点击查看 快速开始](./WX-XCX-BLE/README.md)
+[快速开始](./WX-XCX-BLE/README.md)
 ## 02.iOS 防丢器 Demo
     敬请期待
 ## 03.Android 防丢器 Demo
