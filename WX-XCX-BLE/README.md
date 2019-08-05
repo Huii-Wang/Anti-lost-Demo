@@ -1,5 +1,5 @@
 # 微信小程序BLE DEMO
-    Powerd By Lenzetech
+
 ## 1.去官网下载安装相应的开发工具
     下载地址：https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html
 
