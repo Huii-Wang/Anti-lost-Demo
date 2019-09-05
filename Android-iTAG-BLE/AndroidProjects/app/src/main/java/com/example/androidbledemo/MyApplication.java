@@ -36,7 +36,8 @@ import java.util.List;
 public class MyApplication extends Application {
 
 
-    HashMap<String,MyDevice> bleList = new HashMap<>();
+
+
     //单例模式·
     private static MyApplication myApplication = null;
     public static MyApplication getInstance()
@@ -45,6 +46,9 @@ public class MyApplication extends Application {
         return myApplication;
     }
 
+    /**
+     *手机蓝牙适配器
+     */
     private BluetoothListenerReceiver receiver;
 
     @Override
@@ -61,13 +65,21 @@ public class MyApplication extends Application {
         getApplicationContext().registerReceiver(receiver,makeFilter());
 
 
-        //开始循环发送消息
-        //安卓由于手机设备的不同，消息会放到一个List中去定时发送，避免蓝牙拥堵导致丢包
-        mHandler.postDelayed(r, 2000);//延时100毫秒
+
+        /**
+         *
+         * 开始循环发送消息
+         * 安卓由于手机设备的不同，消息会放到一个List中去定时发送，避免蓝牙拥堵导致丢包
+         * 延时100毫秒
+         */
+        mHandler.postDelayed(r, 2000);
 
     }
 
 
+    /**
+     * 蓝牙消息队列
+     */
     ArrayList<WriteMsgItem> msgList = new ArrayList<>();
     Handler mHandler = new Handler();
     Runnable r = new Runnable() {
@@ -108,8 +120,11 @@ public class MyApplication extends Application {
     };
 
 
-
-    //注册监听手机蓝牙
+    /**
+     * 注册监听蓝牙消息
+     * 监听用户打开/关闭蓝牙
+     * @return
+     */
     private IntentFilter makeFilter() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -118,14 +133,32 @@ public class MyApplication extends Application {
 
 
     BluetoothAdapter mBluetoothAdapter;
-    private BluetoothLeScanner mLeScanner = null;//api 5.0版本以上新的低功耗蓝牙搜索类
-    private ScanCallback mBleScanCallback = null;//api 5.0版本以上搜索回调接口
+    /**
+     * //api 5.0版本以上新的低功耗蓝牙搜索类
+     */
+    private BluetoothLeScanner mLeScanner = null;
+    /**
+     * //api 5.0版本以上搜索回调接口
+     */
+    private ScanCallback mBleScanCallback = null;
 
-    //蓝牙设备
+    /**
+     * 蓝牙设备
+     */
     private BluetoothDevice mBluetoothDevice = null;
-    //Gatt
+    /**
+     *蓝牙 写入服务的Gatt
+     */
     private BluetoothGattCharacteristic writeGatt;
+    /**
+     *蓝牙 Gatt
+     */
     private BluetoothGatt mGatt;
+
+    /**
+     * 方法名：initBle
+     * 功能：初始化手机蓝牙适配器
+     */
     public void initBle(){
         // 是否支持蓝牙低功耗广播（4.3+）
 
@@ -157,27 +190,33 @@ public class MyApplication extends Application {
     }
 
 
-
-
-
-    //开始搜索蓝牙
+    /**
+     * 方法：startDiscovery
+     *功能：开始搜索蓝牙
+     */
     public void startDiscovery() {
 
 
+        /**
+         * 在初始化中未获取到手机蓝牙适配器
+         * 蓝牙适配器为空
+         */
         if (mBluetoothAdapter == null) {
             Log.e("蓝牙","蓝牙搜索失败");
             return;
         }
 
-
-//        Log.e("蓝牙","开始搜索蓝牙");
-        //正在查找中，不做处理
+        /**
+         * 蓝牙正在搜索中不做处理
+         */
         if (mBluetoothAdapter.isDiscovering()) {
             Log.e("蓝牙","蓝牙搜索失败");
             return;
         };
 
-        //判断版本号,如果api版本号大于5.0则使用最新的方法搜素
+        /**
+         * 判断版本号,如果api版本号大于5.0则使用最新的方法搜素
+         */
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             mBluetoothAdapter.startLeScan( (BluetoothAdapter.LeScanCallback) finalCallback );
         } else {
@@ -186,9 +225,12 @@ public class MyApplication extends Application {
                 return;
             }
             mLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-//            Log.e("蓝牙","开始扫描");
 
-//            //指定需要识别到的蓝牙设备
+            /**
+             * 对扫描条件进行设置
+             * 1.指定目标的UDID  0000ffe0-0000-1000-8000-00805f9b34fb
+             * 2.设置扫描频率
+             */
             List<ScanFilter> scanFilterList = new ArrayList<>();
             ScanFilter.Builder builder = new ScanFilter.Builder();
             builder.setServiceUuid(ParcelUuid.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
@@ -197,7 +239,7 @@ public class MyApplication extends Application {
             //指定蓝牙的方式，这里设置的ScanSettings.SCAN_MODE_LOW_LATENCY是比较高频率的扫描方式
             ScanSettings.Builder settingBuilder = new ScanSettings.Builder();
 
-//            settingBuilder.setScanMode(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT);
+            //settingBuilder.setScanMode(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 settingBuilder.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
             }
@@ -208,36 +250,41 @@ public class MyApplication extends Application {
                 settingBuilder.setLegacy(true);
             }
             ScanSettings settings = settingBuilder.build();
-//
 
             Log.e( "开始扫描","开始进行扫描" );
             mLeScanner.startScan(Collections.singletonList( scanFilter ),settings, finalCallback);
-//            mLeScanner.startScan( finalCallback );
+            //mLeScanner.startScan( finalCallback );
 
         }
     }
 
 
-
-    //扫描结果
+    /**
+     * 方法：扫描结果
+     * 功能：蓝牙扫描设备的回调
+     * 提示：可以做在这里对蓝牙进行条件过滤
+     */
     final ScanCallback    finalCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-            /*过滤空设备名*/
-            if (result.getDevice().getName() == null)
+            /**
+             *过滤设备名为空的设备
+             */
+            if ("".equals(result.getDevice().getName()))
             {
                 return;
             }
-            /*过滤非目标设备数据*/
-            if (!result.getDevice().getName().startsWith("BSM"))
+            /**
+             * 以设备名的方式进行过滤设备 如果设备名以XXiTag开头,说明找到目标设备
+             * 找到目标设备
+             * 1.停止扫描
+             * 2.一般在这里可以直接进行设备连接
+             */
+            if (!result.getDevice().getName().startsWith("iTAG"))
             {
                 return;
             }
-
-
-
-
 
         }
         @Override
@@ -252,25 +299,14 @@ public class MyApplication extends Application {
     };
 
 
-
-
-
-
-
-
-
-
-
-
-
-    //根据id
-    //只能使用一个，一个为空或者另一个不为空
+    /**
+     * 方法名：connectBle
+     * 功能：连接到设备
+     *
+     * @param bluetoothDevice
+     */
     public void connectBle( BluetoothDevice bluetoothDevice){
 
-        if (bleList.containsKey(bluetoothDevice.getAddress()))
-        {
-            return;
-        }
 
         Log.e("开始连接到设备","开始连接到设备");
 
@@ -283,13 +319,13 @@ public class MyApplication extends Application {
             @Override
             public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
                 super.onPhyUpdate(gatt, txPhy, rxPhy, status);
-                Log.e("蓝牙","更新");
+                Log.e("蓝牙消息","更新");
             }
 
             @Override
             public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
                 super.onPhyRead(gatt, txPhy, rxPhy, status);
-                Log.e("蓝牙","阅读");
+                Log.e("蓝牙消息","阅读");
             }
 
             @Override
@@ -300,7 +336,13 @@ public class MyApplication extends Application {
                 switch (newState){
                     //已经连接
                     case BluetoothGatt.STATE_CONNECTED:
-                        Log.e("蓝牙","已经连接 开始发现服务"+newState);
+                        /**
+                         * 和目标BLE设备连接成功
+                         * 1.发起请求设备服务，并获取每一条服务下的特征
+                         *  根据设备不同的特征值，确定对设备进行读写或者接受设备消息的操作
+                         * 2.记录设备与状态
+                         */
+                        Log.e("蓝牙消息","已经连接 开始发现服务"+newState);
                         gatt.discoverServices();
 
 
@@ -318,21 +360,6 @@ public class MyApplication extends Application {
 //                            mGatt = gatt;
 //                        }
 
-                        //保存连接设备到列表
-                        if (bleList.containsKey(gatt.getDevice().getAddress()))
-                        {
-                            MyDevice myDevice = bleList.get(gatt.getDevice().getAddress());
-                            myDevice.setBluetoothDevice(gatt.getDevice());
-                            myDevice.setBluetoothGatt(gatt);
-                            bleList.put(gatt.getDevice().getAddress(),myDevice);
-                        }
-                        else
-                        {
-                            MyDevice myDevice = new MyDevice();
-                            myDevice.setBluetoothDevice(gatt.getDevice());
-                            myDevice.setBluetoothGatt(gatt);
-                            bleList.put(gatt.getDevice().getAddress(),myDevice);
-                        }
 
                         break;
                     //正在连接
@@ -391,19 +418,14 @@ public class MyApplication extends Application {
                                 Log.e("蓝牙", "写入服务");
 
 
-                                if (bleList.containsKey(gatt.getDevice().getAddress()))
-                                {
-                                    MyDevice myDevice = bleList.get(gatt.getDevice().getAddress());
-                                    myDevice.setBluetoothGattCharacteristicWrite(gattCharacteristic);
-                                    bleList.put(gatt.getDevice().getAddress(),myDevice);
-                                }
+
                                 //ArrayList<WriteMsgItem> msgList = new ArrayList<>();
                                 //保持连接
                                 int crc1 = (0x55 + 0x81 + 0x06 + 0x01 + 0x02 +0x03 + 0x04 + 0x05 +0x06  )%255;
                                 //gattCharacteristic.setValue(new byte[]{(byte)0x55,(byte) 0x81,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06,(byte)crc1});
                                 //gatt.writeCharacteristic(gattCharacteristic);
                                 WriteMsgItem writeMsgItem1 = new WriteMsgItem();
-                                writeMsgItem1.setMyDevice(bleList.get(gatt.getDevice().getAddress()));
+                                writeMsgItem1.setMyDevice(gatt.getDevice().getAddress());
                                 writeMsgItem1.setWriteInfo(new byte[]{(byte)0x55,(byte) 0x81,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06,(byte)crc1});
                                 msgList.add(writeMsgItem1);
 
@@ -503,14 +525,9 @@ public class MyApplication extends Application {
     }
 
 
-
-
-
-
-
-
-    /*
-     *  监听手机蓝牙的开、关状态
+    /**
+     * 监听设备的蓝牙状态
+     * 手机蓝牙关闭/打开后的一些操作逻辑写在这里
      */
     public class BluetoothListenerReceiver extends BroadcastReceiver {
         @Override
