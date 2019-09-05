@@ -290,7 +290,7 @@ public class MyApplication extends Application {
              * 1.停止扫描
              * 2.一般在这里可以直接进行设备连接
              */
-            if (!result.getDevice().getName().startsWith("iTAG"))
+            if (result.getDevice().getName().startsWith("iTAG"))
             {
                 /**
                  * 停止扫描
@@ -504,7 +504,7 @@ public class MyApplication extends Application {
                 /**
                  * 设备的通知消息会在这里进行获取
                  */
-                if ("0000ffe2-0000-1000-8000-00805f9b34fb".equals(characteristic.getUuid().toString())) {
+                if ("0000ffe1-0000-1000-8000-00805f9b34fb".equals(characteristic.getUuid().toString())) {
 
                     /**
                      * 通过EventBus发送设备发来的消息
