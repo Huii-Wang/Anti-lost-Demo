@@ -27,13 +27,17 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 
 import com.example.androidbledemo.Devices.MyDevice;
+import com.example.androidbledemo.EventBus.BLEMessageEvent;
+import com.example.androidbledemo.EventBus.EventType;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 public class MyApplication extends Application {
+
 
 
 
@@ -45,6 +49,11 @@ public class MyApplication extends Application {
 
         return myApplication;
     }
+
+    /**
+     * 当前连接的/准备连接的设备
+     */
+    MyDevice myDevice = new MyDevice();
 
     /**
      *手机蓝牙适配器
@@ -283,7 +292,22 @@ public class MyApplication extends Application {
              */
             if (!result.getDevice().getName().startsWith("iTAG"))
             {
-                return;
+                /**
+                 * 停止扫描
+                 */
+               mLeScanner.stopScan(finalCallback);
+
+                /**
+                 * 保存到MyDevice
+                 */
+                myDevice.setBluetoothDevice(result.getDevice());
+                /**
+                 * 发送发现设备的消息
+                 */
+                BLEMessageEvent bleMessageEvent = new BLEMessageEvent();
+                bleMessageEvent.setEventType(EventType.BLE_DEVICEFOUND);
+                EventBus.getDefault().post(bleMessageEvent);
+
             }
 
         }
@@ -344,21 +368,18 @@ public class MyApplication extends Application {
                          */
                         Log.e("蓝牙消息","已经连接 开始发现服务"+newState);
                         gatt.discoverServices();
+                        /**
+                         * 发送设备连接成功的消息
+                         */
+                        BLEMessageEvent bleMessageEvent = new BLEMessageEvent();
+                        bleMessageEvent.setEventType(EventType.BLE_CONNECT_SUCCEED);
+                        EventBus.getDefault().post(bleMessageEvent);
 
+                        /**
+                         * 保存到MyDevice
+                         */
+                        myDevice.setBluetoothGatt(gatt);
 
-//                        mLeScanner.stopScan(finalCallback );
-                        //发送蓝牙连接成功的事件
-//                        MessageEvent messageEvent = new MessageEvent();
-//                        messageEvent.setEventType( EventType.BLE_CONN );
-//                        EventBus.getDefault().post( messageEvent );
-
-                        //保存设备
-
-//                        if (mBluetoothDevice == null)
-//                        {
-//                            mBluetoothDevice = gatt.getDevice();
-//                            mGatt = gatt;
-//                        }
 
 
                         break;
@@ -372,15 +393,14 @@ public class MyApplication extends Application {
                     //已经断开
                     case BluetoothGatt.STATE_DISCONNECTED:
                         Log.e("蓝牙","断开连接");
-                        //发送蓝牙断开的事件
-//                        MessageEvent messageEvent2 = new MessageEvent();
-//                        messageEvent2.setEventType( EventType.BLE_DISCONN );
-//                        EventBus.getDefault().post( messageEvent2 );
-//                        mBluetoothDevice = null;
-//                        startDiscovery();
-
-
+                        /**
+                         * 发送蓝牙断开的消息
+                         */
+                        BLEMessageEvent bleMessageEvent2 = new BLEMessageEvent();
+                        bleMessageEvent2.setEventType(EventType.BLE_DISONNECT);
+                        EventBus.getDefault().post(bleMessageEvent2);
                         break;
+
                         default:
                             break;
                 }
@@ -412,28 +432,26 @@ public class MyApplication extends Application {
 
                             Log.e("蓝牙", "特征值uuid"+gattCharacteristic.getUuid().toString()); //打印出UUID
 
-                            if ("0000ffe1-0000-1000-8000-00805f9b34fb".equals(gattCharacteristic.getUuid().toString())) {
+                            if ("00002a06-0000-1000-8000-00805f9b34fb".equals(gattCharacteristic.getUuid().toString())) {
 
+                                /**
+                                 * 记录写入服务
+                                 */
+                                myDevice.setBluetoothDevice(gatt.getDevice());
+                                myDevice.setBluetoothGatt(gatt);
+                                myDevice.setBluetoothGattCharacteristicWrite(gattCharacteristic);
 
                                 Log.e("蓝牙", "写入服务");
 
 
 
-                                //ArrayList<WriteMsgItem> msgList = new ArrayList<>();
-                                //保持连接
-                                int crc1 = (0x55 + 0x81 + 0x06 + 0x01 + 0x02 +0x03 + 0x04 + 0x05 +0x06  )%255;
-                                //gattCharacteristic.setValue(new byte[]{(byte)0x55,(byte) 0x81,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06,(byte)crc1});
-                                //gatt.writeCharacteristic(gattCharacteristic);
-                                WriteMsgItem writeMsgItem1 = new WriteMsgItem();
-                                writeMsgItem1.setMyDevice(gatt.getDevice().getAddress());
-                                writeMsgItem1.setWriteInfo(new byte[]{(byte)0x55,(byte) 0x81,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06,(byte)crc1});
-                                msgList.add(writeMsgItem1);
+
 
 
                                 Log.e("同步时间","设备连接成功");
 
 
-                            }else  if ("0000ffe2-0000-1000-8000-00805f9b34fb".equals(gattCharacteristic.getUuid().toString())) {
+                            }else  if ("0000ffe1-0000-1000-8000-00805f9b34fb".equals(gattCharacteristic.getUuid().toString())) {
                                 Log.e("蓝牙", "监听数据成功");
                                 //打开手机报警通知
                                 gatt.setCharacteristicNotification(gattCharacteristic,true);
@@ -483,11 +501,25 @@ public class MyApplication extends Application {
                 super.onCharacteristicChanged(gatt, characteristic);
 
 
+                /**
+                 * 设备的通知消息会在这里进行获取
+                 */
                 if ("0000ffe2-0000-1000-8000-00805f9b34fb".equals(characteristic.getUuid().toString())) {
-                    byte[] batteryInfo = characteristic.getValue();
-                    for (int i = 0; i < batteryInfo.length; i++) {
-                        Log.e("蓝牙" + i, "获取设备回复消息" + batteryInfo[i]);
-                    }
+
+                    /**
+                     * 通过EventBus发送设备发来的消息
+                     */
+                    BLEMessageEvent bleMessageEvent2 = new BLEMessageEvent();
+                    bleMessageEvent2.setEventType(EventType.BLE_MESSAGE);
+                    bleMessageEvent2.setMessageInfo(characteristic.getValue());
+                    EventBus.getDefault().post(bleMessageEvent2);
+
+
+
+//                    byte[] batteryInfo = characteristic.getValue();
+//                    for (int i = 0; i < batteryInfo.length; i++) {
+//                        Log.e("蓝牙" + i, "获取设备回复消息" + batteryInfo[i]);
+//                    }
 
                 }
             }
@@ -526,6 +558,19 @@ public class MyApplication extends Application {
 
 
     /**
+     * 给BLE发送消息
+     */
+    public void writeMsgToBLe(byte[] bytes)
+    {
+        WriteMsgItem writeMsgItem1 = new WriteMsgItem();
+        writeMsgItem1.setMyDevice(myDevice);
+        //new byte[]{(byte)0x55,(byte) 0x81,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06,(byte)crc1}
+        writeMsgItem1.setWriteInfo(bytes);
+        msgList.add(writeMsgItem1);
+    }
+
+
+    /**
      * 监听设备的蓝牙状态
      * 手机蓝牙关闭/打开后的一些操作逻辑写在这里
      */
@@ -554,7 +599,7 @@ public class MyApplication extends Application {
                             break;
                         case BluetoothAdapter.STATE_OFF:
                             Log.e("蓝牙","onReceive---------蓝牙已经关闭");
-                            //发送蓝牙连接打开的事件
+
 
 
                             break;

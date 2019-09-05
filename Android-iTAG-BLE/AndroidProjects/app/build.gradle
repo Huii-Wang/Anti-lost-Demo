@@ -20,6 +20,10 @@ android {
 }
 
 dependencies {
+    /**
+     * EventBus 用来向各个页面传递蓝牙消息
+     */
+    implementation 'org.greenrobot:eventbus:3.1.1'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
