@@ -55,7 +55,7 @@ public class MyApplication extends Application {
 
 
         //初始化蓝牙设备
-        InitBle();
+        initBle();
         //注册监听手机蓝牙状态
         receiver = new BluetoothListenerReceiver();
         getApplicationContext().registerReceiver(receiver,makeFilter());
@@ -126,7 +126,7 @@ public class MyApplication extends Application {
     //Gatt
     private BluetoothGattCharacteristic writeGatt;
     private BluetoothGatt mGatt;
-    public void InitBle(){
+    public void initBle(){
         // 是否支持蓝牙低功耗广播（4.3+）
 
         if (!getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -181,7 +181,10 @@ public class MyApplication extends Application {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             mBluetoothAdapter.startLeScan( (BluetoothAdapter.LeScanCallback) finalCallback );
         } else {
-            if (!mBluetoothAdapter.isEnabled()) return;
+            if (!mBluetoothAdapter.isEnabled())
+            {
+                return;
+            }
             mLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
 //            Log.e("蓝牙","开始扫描");
 
@@ -262,7 +265,7 @@ public class MyApplication extends Application {
 
     //根据id
     //只能使用一个，一个为空或者另一个不为空
-    public void ConnectBle( BluetoothDevice bluetoothDevice){
+    public void connectBle( BluetoothDevice bluetoothDevice){
 
         if (bleList.containsKey(bluetoothDevice.getAddress()))
         {
@@ -351,6 +354,8 @@ public class MyApplication extends Application {
 
 
                         break;
+                        default:
+                            break;
                 }
 
             }
@@ -379,7 +384,10 @@ public class MyApplication extends Application {
 
 
                             Log.e("蓝牙", "特征值uuid"+gattCharacteristic.getUuid().toString()); //打印出UUID
-                            if(gattCharacteristic.getUuid().toString().equals("0000ffe1-0000-1000-8000-00805f9b34fb")){
+
+                            if ("0000ffe1-0000-1000-8000-00805f9b34fb".equals(gattCharacteristic.getUuid().toString())) {
+
+
                                 Log.e("蓝牙", "写入服务");
 
 
@@ -403,7 +411,7 @@ public class MyApplication extends Application {
                                 Log.e("同步时间","设备连接成功");
 
 
-                            }else if(gattCharacteristic.getUuid().toString().equals("0000ffe2-0000-1000-8000-00805f9b34fb")){
+                            }else  if ("0000ffe2-0000-1000-8000-00805f9b34fb".equals(gattCharacteristic.getUuid().toString())) {
                                 Log.e("蓝牙", "监听数据成功");
                                 //打开手机报警通知
                                 gatt.setCharacteristicNotification(gattCharacteristic,true);
@@ -453,22 +461,13 @@ public class MyApplication extends Application {
                 super.onCharacteristicChanged(gatt, characteristic);
 
 
-
-                if(characteristic.getUuid().toString().equals("0000ffe2-0000-1000-8000-00805f9b34fb")) {
-
-
+                if ("0000ffe2-0000-1000-8000-00805f9b34fb".equals(characteristic.getUuid().toString())) {
                     byte[] batteryInfo = characteristic.getValue();
                     for (int i = 0; i < batteryInfo.length; i++) {
                         Log.e("蓝牙" + i, "获取设备回复消息" + batteryInfo[i]);
                     }
 
-
                 }
-
-
-
-
-
             }
 
             @Override
@@ -542,8 +541,12 @@ public class MyApplication extends Application {
 
 
                             break;
+                            default:
+                                break;
                     }
                     break;
+                    default:
+                        break;
             }
 
         }
