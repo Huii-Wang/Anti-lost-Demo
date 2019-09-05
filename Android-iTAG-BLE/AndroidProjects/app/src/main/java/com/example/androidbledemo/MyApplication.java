@@ -86,7 +86,7 @@ public class MyApplication extends Application {
                 {
                     for (int i =0;i<writeMsgItem.getWriteInfo().length;i++)
                     {
-                        Log.e( "蓝牙","发送消息"+writeMsgItem.getWriteInfo()[i] );
+                        Log.e( "向设备发送消息","消息内容"+writeMsgItem.getWriteInfo()[i] );
                     }
 
                     MyDevice myDevice = writeMsgItem.getMyDevice();
@@ -398,32 +398,7 @@ public class MyApplication extends Application {
                                 writeMsgItem1.setMyDevice(bleList.get(gatt.getDevice().getAddress()));
                                 writeMsgItem1.setWriteInfo(new byte[]{(byte)0x55,(byte) 0x81,(byte)0x06,(byte)0x01,(byte)0x02,(byte)0x03,(byte)0x04,(byte)0x05,(byte)0x06,(byte)crc1});
                                 msgList.add(writeMsgItem1);
-                                //同步时间
-                                int now = TimeUtils.getSecondTimestamp();
 
-                                int second3  = now/16777216;
-                                int second2  = ((now)%16777216)/65536;
-                                int second1  = ((now)%65536)/256;
-                                int second0  = (now)%256;
-                                int crc2 = (second3+second2+second1+second0+85+131+4)%256;
-                                int my = second0+second1*256+second2*256*256 + second3*256*256*256;
-                                Log.e("当前时间戳是1",now+"：同步到设备");
-                                Log.e("当前时间戳是2",my+"：同步到设备");
-                                //gattCharacteristic.setValue(new byte[]{(byte)85,(byte)130,(byte)4,(byte)second3,(byte)second2,(byte)second1,(byte)second0,(byte)crc2});
-                                //gatt.writeCharacteristic(gattCharacteristic);
-                                WriteMsgItem writeMsgItem2 = new WriteMsgItem();
-                                writeMsgItem2.setMyDevice(bleList.get(gatt.getDevice().getAddress()));
-                                writeMsgItem2.setWriteInfo(new byte[]{(byte)85,(byte)131,(byte)4,(byte)second3,(byte)second2,(byte)second1,(byte)second0,(byte)crc2});
-                                msgList.add(writeMsgItem2);
-                                //请求历史数据
-                                int crc3 = (0x55 + 0x85 +0x01 + 0x00)%255;
-                                //gattCharacteristic.setValue(new byte[]{(byte)0x55,(byte) 0x85,(byte)0x01,(byte)0x00,(byte)crc3});
-                                //gatt.writeCharacteristic(gattCharacteristic);
-
-                                WriteMsgItem writeMsgItem3 = new WriteMsgItem();
-                                writeMsgItem3.setMyDevice(bleList.get(gatt.getDevice().getAddress()));
-                                writeMsgItem3.setWriteInfo(new byte[]{(byte)0x55,(byte) 0x85,(byte)0x01,(byte)0x00,(byte)crc3});
-                                msgList.add(writeMsgItem3);
 
                                 Log.e("同步时间","设备连接成功");
 
@@ -479,113 +454,19 @@ public class MyApplication extends Application {
 
 
 
-                if(characteristic.getUuid().toString().equals("0000ffe2-0000-1000-8000-00805f9b34fb"))
-                {
+                if(characteristic.getUuid().toString().equals("0000ffe2-0000-1000-8000-00805f9b34fb")) {
 
 
                     byte[] batteryInfo = characteristic.getValue();
-                    for (int i = 0;i<batteryInfo.length;i++)
-                    {
-                        Log.e("蓝牙"+i,"获取设备回复消息"+batteryInfo[i]);
+                    for (int i = 0; i < batteryInfo.length; i++) {
+                        Log.e("蓝牙" + i, "获取设备回复消息" + batteryInfo[i]);
                     }
 
-
-
-                    byte[] deviceInfo = characteristic.getValue();
-
-
-                    if (deviceInfo==null || deviceInfo.length<=0)
-                    {
-                        return;
-                    }
-
-                    //判断是否同步时间完毕
-                    if (deviceInfo[1]==-126&&deviceInfo[2]==4)
-                    {
-                        Log.e("时间","同步时间完成 断开连接");
-
-
-
-
-                    }
-
-
-                    if (( deviceInfo[1] == -123 )&& ( deviceInfo[3]== 68))
-                    {
-                        Log.e("接受到设备数据信","开始传输数据");
-                    }
-                    else   if ((deviceInfo[1] == -123 )&& (deviceInfo[2]== 16))
-                    {
-                        Log.e("接受到设备数据信","传输数据中");
-                        //解析数据 处理数据
-                        DeviceManager.getDeviceManager().OnDeviceGetmsg(gatt.getDevice().getAddress(),deviceInfo);
-                    }
-                    else   if ((deviceInfo[1] == -123 )&& (deviceInfo[3]== 119))
-                    {
-                        Log.e("接受到设备数据信","数据传输结束 清除数据");
-                        //清空消息
-                        //0x55、0x86、0x01、0x00、0xcrc
-                        WriteMsgItem writeMsgItem3 = new WriteMsgItem();
-                        writeMsgItem3.setMyDevice(bleList.get(gatt.getDevice().getAddress()));
-                        int crc3 = ( 0x55 +0x86 + 0x01 )%256;
-                        writeMsgItem3.setWriteInfo(new byte[]{(byte)0x55,(byte) 0x86,(byte)0x01,(byte)0x00,(byte)crc3});
-                        msgList.add(writeMsgItem3);
-
-
-//                        if (bleList.containsKey(gatt.getDevice().getAddress()))
-//                        {
-//
-//
-//
-//                            MyDevice myDevice = bleList.get(gatt.getDevice().getAddress());
-//
-//
-//                                Log.e("同步数据完毕，断开连接","断开连接");
-//                                gatt.disconnect();
-//
-//                                bleList.remove(gatt.getDevice().getAddress());
-//
-//                        }
-                    }
-                    else if (deviceInfo[1] == -122 && deviceInfo[0]==-86)
-                    {
-
-
-
-                        Log.e("接受到设备数据信","数据传输结束 断开连接r");
-                        gatt.disconnect();
-
-                        if (bleList.containsKey(gatt.getDevice().getAddress()))
-                        {
-                            bleList.remove(gatt.getDevice().getAddress());
-                        }
-                    }
-
-
-
-
-                    //开始传输数据
-                    //传输数据中
-                    //数据处理完毕，清空数据，断开连接
 
                 }
 
 
 
-//                if(characteristic.getUuid().toString().equals("00002a19-0000-1000-8000-00805f9b34fb")){
-//
-//                    byte[] batteryInfo = characteristic.getValue();
-//                    for (int i = 0;i<batteryInfo.length;i++)
-//                    {
-//                        Log.e("蓝牙"+i,"获取到电量信息"+batteryInfo[i]);
-//                    }
-//                }
-
-
-
-
-                Log.e( characteristic.getUuid().toString(),characteristic.getValue().toString() );
-                Log.e("蓝牙特征值"+characteristic.getUuid().toString(),"改变");
 
 
             }
