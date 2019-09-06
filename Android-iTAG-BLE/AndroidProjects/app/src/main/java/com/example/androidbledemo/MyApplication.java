@@ -103,7 +103,7 @@ public class MyApplication extends Application {
                 WriteMsgItem writeMsgItem = msgList.get(0);
                 msgList.remove(0);
 
-                if (writeMsgItem!=null)
+                if (writeMsgItem!=null&&writeMsgItem.getWriteInfo()!=null&&writeMsgItem.getMyDevice().getBluetoothGatt()!=null)
                 {
                     for (int i =0;i<writeMsgItem.getWriteInfo().length;i++)
                     {
