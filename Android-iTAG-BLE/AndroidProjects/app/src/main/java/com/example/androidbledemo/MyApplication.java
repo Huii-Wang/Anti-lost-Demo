@@ -560,7 +560,7 @@ public class MyApplication extends Application {
     /**
      * 给BLE发送消息
      */
-    public void writeMsgToBLe(byte[] bytes)
+    public void writeMsgToBle(byte[] bytes)
     {
         WriteMsgItem writeMsgItem1 = new WriteMsgItem();
         writeMsgItem1.setMyDevice(myDevice);

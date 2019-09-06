@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void bleAlarm()
     {
-        MyApplication.getInstance().writeMsgToBLe(new byte[]{0x01});
+        MyApplication.getInstance().writeMsgToBle(new byte[]{0x01});
     }
 
     /**
@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void bleCancleAlarm()
     {
-        MyApplication.getInstance().writeMsgToBLe(new byte[]{0x00});
+        MyApplication.getInstance().writeMsgToBle(new byte[]{0x00});
     }
 
 
