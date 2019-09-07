@@ -1,9 +1,8 @@
 # iTagBleDemo
  防丢器 iTag iSearching 蓝牙Demo  Anti-lost
- 使用ST17H26芯片
 
 # 说明
-    后续会支持更多版本Demo,如有需要，请联系我们进行开发
+    BUG反馈和新功能增加,请联系微信/QQ进行支持
 
 ## 01.小程序 防丢器 Demo
 [小程序-快速开始](./WX-XCX-BLE/README.md)
