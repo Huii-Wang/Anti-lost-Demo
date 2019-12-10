@@ -1,5 +1,6 @@
 package com.example.androidbledemo;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -69,7 +70,7 @@ public class MyApplication extends Application {
 
         //初始化蓝牙设备
         initBle();
-        //注册监听手机蓝牙状态
+        //注册监听手机蓝牙状态 监听蓝牙的打开关闭状态
         receiver = new BluetoothListenerReceiver();
         getApplicationContext().registerReceiver(receiver,makeFilter());
 
@@ -186,11 +187,13 @@ public class MyApplication extends Application {
             if (mBluetoothAdapter.isEnabled())
             {
                 Log.e("蓝牙","设备开启蓝牙,开始进行扫描");
+                Toast.makeText(this,"设备开启蓝牙,开始进行扫描",Toast.LENGTH_LONG).show();
 //                startDiscovery();
             }
             else
             {
                 Log.e("蓝牙","设备没有开启蓝牙");
+                Toast.makeText(this,"设备没有开启蓝牙",Toast.LENGTH_LONG).show();
                 //主动开启蓝牙
                 mBluetoothAdapter.enable();
                 Toast.makeText(getApplicationContext(),"请在设置中打开蓝牙",Toast.LENGTH_SHORT).show();
@@ -203,6 +206,7 @@ public class MyApplication extends Application {
      * 方法：startDiscovery
      *功能：开始搜索蓝牙
      */
+    @SuppressLint("NewApi")
     public void startDiscovery() {
 
 
