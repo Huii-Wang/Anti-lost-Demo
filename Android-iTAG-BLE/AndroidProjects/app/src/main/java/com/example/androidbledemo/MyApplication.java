@@ -294,7 +294,7 @@ public class MyApplication extends Application {
              * 1.停止扫描
              * 2.一般在这里可以直接进行设备连接
              */
-            if (result.getDevice().getName().startsWith("iTAG"))
+            if (result.getDevice().getName().startsWith("iTAG222222") || result.getDevice().getName().startsWith("REKA"))
             {
                 /**
                  * 停止扫描
@@ -459,6 +459,10 @@ public class MyApplication extends Application {
                                 Log.e("蓝牙", "监听数据成功");
                                 //打开手机报警通知
                                 gatt.setCharacteristicNotification(gattCharacteristic,true);
+                            }else  if ("00002a19-0000-1000-8000-00805f9b34fb".equals(gattCharacteristic.getUuid().toString())) {
+                                Log.e("蓝牙", "监听数据成功");
+                                //打开手机报警通知
+                                gatt.readCharacteristic(gattCharacteristic);
                             }
 
 
@@ -484,8 +488,7 @@ public class MyApplication extends Application {
                 if (characteristic.getValue()!=null && characteristic.getValue().length>=1)
                 {
                     int a =  characteristic.getValue()[0];
-
-                    Log.e("蓝牙","设置电量"+a);
+                    Log.e("蓝牙","获取到设备电量"+a);
                 }
 
             }
